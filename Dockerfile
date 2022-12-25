@@ -1,4 +1,4 @@
-FROM fedora
+FROM fedora-minimal
 
 WORKDIR /source
 
@@ -6,12 +6,12 @@ WORKDIR /source
 # =================================
 
 
-RUN dnf install -y https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm \
-		   https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm \
-    && dnf clean all
+# RUN dnf install -y https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm \
+		#    https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm \
+    # && dnf clean all
 
-
-RUN dnf install -y texlive-adjustbox \
+# TODO: pull package list from file instead
+RUN microdnf install -y texlive-adjustbox \
                    texlive-background \
                    texlive-bibtex \
                    texlive-biblatex \
@@ -75,10 +75,10 @@ RUN dnf install -y texlive-adjustbox \
                    ossobuffo-jura-fonts \
                    python3-pygments \
                    python3-pygments-style-solarized \
-                   which \
-                   ffmpeg \
+                #    which \
+                #    ffmpeg \
                    git \
-    && dnf clean all
+    && microdnf clean all
 
 
 RUN mkdir -p /source \
