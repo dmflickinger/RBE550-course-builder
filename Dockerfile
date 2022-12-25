@@ -83,32 +83,25 @@ RUN dnf install -y texlive-adjustbox \
 
 RUN mkdir -p /source \
     && mkdir -p /output \
-    && mkdir -p /bib
+    && mkdir -p /bib \
+    && mkdir -p /usr/share/texlive/texmf-local/tex/latex/RBEassignment/fig \
+    && mkdir -p /usr/share/texlive/texmf-local/tex/latex/RBElecture/fig \
+    && mkdir -p /usr/local/share/LaTeX_templates/RBE550_lecture/fig/
 
 # TODO: put template stuff in multistage build container
 
 # pull assignments template
-RUN git clone https://github.com/dmflickinger/RBE550-assignment-template.git
-
-# install assignments template
-COPY assignmenttemplate/template/RBEassignment.cls /usr/share/texlive/texmf-local/tex/latex/RBEassignment/
-COPY assignmenttemplate/template/fig/*.png /usr/share/texlive/texmf-local/tex/latex/RBEassignment/fig/
-
-
+RUN git clone https://github.com/dmflickinger/RBE550-assignment-template.git \
+    && cp -f /source/RBE550-assignment-template/template/RBEassignment.cls /usr/share/texlive/texmf-local/tex/latex/RBEassignment/ \
+    && cp -f /source/RBE550-assignment-template/template/fig/*.png /usr/share/texlive/texmf-local/tex/latex/RBEassignment/fig/
 
 # pull lectures template
-RUN git clone https://github.com/dmflickinger/RBE550-lecture-template.git
-
-# install lectures template
-COPY lecturetemplate/fig/*.pdf /usr/local/share/LaTeX_templates/RBE550_lecture/fig/
-
-COPY lecturetemplate/template/RBElecture.cls /usr/share/texlive/texmf-local/tex/latex/RBElecture/
-COPY lecturetemplate/template/fig/*.png /usr/share/texlive/texmf-local/tex/latex/RBElecture/fig/
-
-COPY lecturetemplate/scripts/build.sh /usr/local/bin/
-COPY lecturetemplate/scripts/encodeVideo.sh /usr/local/bin/
-
-
+RUN git clone https://github.com/dmflickinger/RBE550-lecture-template.git \
+    && cp -f /source/RBE550-lecture-template/fig/*.pdf /usr/local/share/LaTeX_templates/RBE550_lecture/fig/ \
+    && cp -f /source/RBE550-lecture-template/template/RBElecture.cls /usr/share/texlive/texmf-local/tex/latex/RBElecture/ \
+    && cp -f /source/RBE550-lecture-template/template/fig/*.png /usr/share/texlive/texmf-local/tex/latex/RBElecture/fig/
+    # && cp -f /source/RBE550-lecture-template/scripts/build.sh /usr/local/bin/ \
+    # && cp -f /source/RBE550-lecture-template/scripts/encodeVideo.sh /usr/local/bin/
 
 
 # Register the RBE classes with texlive
