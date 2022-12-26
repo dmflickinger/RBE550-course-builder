@@ -1,14 +1,31 @@
+FROM fedora-minimal as templates-getter
+
+WORKDIR /template
+RUN mkdir -p /template
+
+# Install assignment and lecture tempates
+# =======================================
+
+RUN microdnf install -y git \
+    && microdnf clean all
+
+# pull assignments template
+RUN git clone https://github.com/dmflickinger/RBE550-assignment-template.git
+ 
+# pull lectures template
+RUN git clone https://github.com/dmflickinger/RBE550-lecture-template.git
+ 
+
+
 FROM fedora-minimal
+
 
 WORKDIR /source
 
-# Install packages (mainly texlive)
-# =================================
+# Install packages for building LaTeX documents
+# =============================================
 
 
-# RUN dnf install -y https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm \
-		#    https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm \
-    # && dnf clean all
 
 # TODO: pull package list from file instead
 RUN microdnf install -y texlive-adjustbox \
@@ -81,6 +98,7 @@ RUN microdnf install -y texlive-adjustbox \
     && microdnf clean all
 
 
+
 RUN mkdir -p /source \
     && mkdir -p /output \
     && mkdir -p /bib \
@@ -88,26 +106,27 @@ RUN mkdir -p /source \
     && mkdir -p /usr/share/texlive/texmf-local/tex/latex/RBElecture/fig \
     && mkdir -p /usr/local/share/LaTeX_templates/RBE550_lecture/fig/
 
-# TODO: put template stuff in multistage build container
 
-# pull assignments template
-RUN git clone https://github.com/dmflickinger/RBE550-assignment-template.git \
-    && cp -f /source/RBE550-assignment-template/template/RBEassignment.cls /usr/share/texlive/texmf-local/tex/latex/RBEassignment/ \
-    && cp -f /source/RBE550-assignment-template/template/fig/*.png /usr/share/texlive/texmf-local/tex/latex/RBEassignment/fig/
+# Pull tempate files from intermediate container
+# ----------------------------------------------
 
-# pull lectures template
-RUN git clone https://github.com/dmflickinger/RBE550-lecture-template.git \
-    && cp -f /source/RBE550-lecture-template/fig/*.pdf /usr/local/share/LaTeX_templates/RBE550_lecture/fig/ \
-    && cp -f /source/RBE550-lecture-template/template/RBElecture.cls /usr/share/texlive/texmf-local/tex/latex/RBElecture/ \
-    && cp -f /source/RBE550-lecture-template/template/fig/*.png /usr/share/texlive/texmf-local/tex/latex/RBElecture/fig/
-    # && cp -f /source/RBE550-lecture-template/scripts/build.sh /usr/local/bin/ \
-    # && cp -f /source/RBE550-lecture-template/scripts/encodeVideo.sh /usr/local/bin/
+COPY --from=templates-getter /template/RBE550-assignment-template/template/RBEassignment.cls /usr/share/texlive/texmf-local/tex/latex/RBEassignment/
+COPY --from=templates-getter /template/RBE550-assignment-template/template/fig/*.png /usr/share/texlive/texmf-local/tex/latex/RBEassignment/fig/
+
+
+
+COPY --from=templates-getter /template/RBE550-lecture-template/fig/placeholder.pdf /usr/local/share/LaTeX_templates/RBE550_lecture/fig/
+COPY --from=templates-getter /template/RBE550-lecture-template/template/RBElecture.cls /usr/share/texlive/texmf-local/tex/latex/RBElecture/
+COPY --from=templates-getter /template/RBE550-lecture-template/template/fig/*.png /usr/share/texlive/texmf-local/tex/latex/RBElecture/fig/
 
 
 # Register the RBE classes with texlive
 RUN tlmgr conf texmf TEXMFHOME /usr/share/texlive/texmf-local \
     && mktexlsr /usr/share/texlive/texmf-local
 
+
+
+# TODO: pull RBE resources to /bib
 
 # TODO: pull syllabus to /source
 # TODO: pull assignments to /source
