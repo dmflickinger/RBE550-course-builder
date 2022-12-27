@@ -1,0 +1,8 @@
+services:
+  RBE550-Course:
+    build: https://github.com/dmflickinger/RBE550-course-builder.git#main
+    container_name: RBE550-CourseBuilder
+    image: rbe550-course
+    volumes:
+      - ~/.ssh:/root/.ssh
+      - ~/output:/output
