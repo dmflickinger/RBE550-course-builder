@@ -1,4 +1,4 @@
-FROM fedora-minimal as templates-getter
+FROM fedora as templates-getter
 
 WORKDIR /template
 RUN mkdir -p /template
@@ -6,8 +6,8 @@ RUN mkdir -p /template
 # Install assignment and lecture tempates
 # =======================================
 
-RUN microdnf install -y git git-lfs \
-    && microdnf clean all
+RUN dnf install -y git git-lfs \
+    && dnf clean all
 
 # pull assignments template
 RUN git clone https://github.com/dmflickinger/RBE550-assignment-template.git
