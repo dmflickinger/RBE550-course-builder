@@ -6,7 +6,7 @@ RUN mkdir -p /template
 # Install assignment and lecture tempates
 # =======================================
 
-RUN microdnf install -y git \
+RUN microdnf install -y git git-lfs \
     && microdnf clean all
 
 # pull assignments template
@@ -14,10 +14,13 @@ RUN git clone https://github.com/dmflickinger/RBE550-assignment-template.git
  
 # pull lectures template
 RUN git clone https://github.com/dmflickinger/RBE550-lecture-template.git
- 
+
+# pull resources
+RUN git clone https://github.com/dmflickinger/RBE550resources.git
 
 
-FROM fedora-minimal
+
+FROM fedora
 
 
 WORKDIR /source
@@ -26,9 +29,13 @@ WORKDIR /source
 # =============================================
 
 
+RUN dnf install -y https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm \
+		   https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm \
+    && dnf clean all
 
-# TODO: pull package list from file instead
-RUN microdnf install -y texlive-adjustbox \
+
+RUN dnf install --nodocs -y \
+                   texlive-adjustbox \
                    texlive-background \
                    texlive-bibtex \
                    texlive-biblatex \
@@ -74,6 +81,7 @@ RUN microdnf install -y texlive-adjustbox \
                    texlive-sourcecodepro \
                    texlive-subfigmat \
                    texlive-svg \
+                   texlive-tcolorbox \
                    texlive-titlesec \
                    texlive-titling \
                    texlive-tocloft \
@@ -90,24 +98,25 @@ RUN microdnf install -y texlive-adjustbox \
                    graphviz \
                    make \
                    ossobuffo-jura-fonts \
+                   poppler-utils \
                    python3-pygments \
                    python3-pygments-style-solarized \
-                #    which \
-                #    ffmpeg \
+                   ffmpeg \
                    git \
-    && microdnf clean all
+                   git-lfs \
+    && dnf clean all
+
 
 
 
 RUN mkdir -p /source \
-    && mkdir -p /output \
     && mkdir -p /bib \
     && mkdir -p /usr/share/texlive/texmf-local/tex/latex/RBEassignment/fig \
     && mkdir -p /usr/share/texlive/texmf-local/tex/latex/RBElecture/fig \
     && mkdir -p /usr/local/share/LaTeX_templates/RBE550_lecture/fig/
 
 
-# Pull tempate files from intermediate container
+# Pull template files from intermediate container
 # ----------------------------------------------
 
 COPY --from=templates-getter /template/RBE550-assignment-template/template/RBEassignment.cls /usr/share/texlive/texmf-local/tex/latex/RBEassignment/
@@ -118,6 +127,9 @@ COPY --from=templates-getter /template/RBE550-assignment-template/template/fig/*
 COPY --from=templates-getter /template/RBE550-lecture-template/fig/placeholder.pdf /usr/local/share/LaTeX_templates/RBE550_lecture/fig/
 COPY --from=templates-getter /template/RBE550-lecture-template/template/RBElecture.cls /usr/share/texlive/texmf-local/tex/latex/RBElecture/
 COPY --from=templates-getter /template/RBE550-lecture-template/template/fig/*.png /usr/share/texlive/texmf-local/tex/latex/RBElecture/fig/
+COPY --from=templates-getter /template/RBE550-lecture-template/scripts/encodeVideo.sh /usr/local/bin/
+
+COPY --from=templates-getter /template/RBE550resources/*.bib /bib/
 
 
 # Register the RBE classes with texlive
@@ -125,23 +137,14 @@ RUN tlmgr conf texmf TEXMFHOME /usr/share/texlive/texmf-local \
     && mktexlsr /usr/share/texlive/texmf-local
 
 
-
-# TODO: pull RBE resources to /bib
-
-# TODO: pull syllabus to /source
-# TODO: pull assignments to /source
-# TODO: pull lectures to /source
+COPY scripts/build_course.sh /usr/local/bin/
 
 
-
-
-
-# COPY scripts/build.sh /usr/local/bin/
-
-
-# TODO: configure entrypoint to kick off building everything
-# ENTRYPOINT [ "/usr/local/bin/build.sh" ]
+# configure entrypoint to kick off building everything
+ENTRYPOINT [ "/usr/local/bin/build_course.sh" ]
 
 
 #VOLUME [ "/source" "/output" "/bib"]
 
+# NOTE: for example, use podman to run this container:
+# podman run --rm -v ~/.ssh:/root/.ssh -v ./output:/output --env-file=env.txt rbe550-course
