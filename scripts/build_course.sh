@@ -11,6 +11,7 @@ mkdir -p /output/lectures/slides
 # ==============
 
 cd /source
+rm -rf $SYLLABUS_DIR
 ssh-agent bash -c 'ssh-add $GIT_PRIVATE_KEYFILE; git clone $SYLLABUS_PROJECT'
 cd $SYLLABUS_DIR
 make install
@@ -20,6 +21,7 @@ make install
 # =================
 
 cd /source
+rm -rf $ASSIGNMENTS_DIR
 ssh-agent bash -c 'ssh-add $GIT_PRIVATE_KEYFILE; git clone $ASSIGNMENTS_PROJECT'
 cd $ASSIGNMENTS_DIR
 make install
@@ -30,6 +32,7 @@ make install
 # ==============
 
 cd /source
+rm -rf $LECTURES_DIR
 ssh-agent bash -c 'ssh-add $GIT_PRIVATE_KEYFILE; git clone $LECTURES_PROJECT'
 cd $LECTURES_DIR
 make -B install
