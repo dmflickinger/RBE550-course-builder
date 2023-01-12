@@ -25,6 +25,32 @@ FROM fedora
 
 WORKDIR /source
 
+
+COPY scripts/build_course.sh /usr/local/bin/
+
+RUN mkdir -p /source \
+    && mkdir -p /bib \
+    && mkdir -p /usr/share/texlive/texmf-local/tex/latex/RBEassignment/fig \
+    && mkdir -p /usr/share/texlive/texmf-local/tex/latex/RBElecture/fig \
+    && mkdir -p /usr/local/share/LaTeX_templates/RBE550_lecture/fig/
+
+
+# Pull template files from intermediate container
+# ----------------------------------------------
+
+COPY --from=templates-getter /template/RBE550-assignment-template/template/RBEassignment.cls /usr/share/texlive/texmf-local/tex/latex/RBEassignment/
+COPY --from=templates-getter /template/RBE550-assignment-template/template/fig/*.png /usr/share/texlive/texmf-local/tex/latex/RBEassignment/fig/
+
+
+
+COPY --from=templates-getter /template/RBE550-lecture-template/fig/placeholder.pdf /usr/local/share/LaTeX_templates/RBE550_lecture/fig/
+COPY --from=templates-getter /template/RBE550-lecture-template/template/RBElecture.cls /usr/share/texlive/texmf-local/tex/latex/RBElecture/
+COPY --from=templates-getter /template/RBE550-lecture-template/template/fig/*.png /usr/share/texlive/texmf-local/tex/latex/RBElecture/fig/
+COPY --from=templates-getter /template/RBE550-lecture-template/scripts/encodeVideo.sh /usr/local/bin/
+
+COPY --from=templates-getter /template/RBE550resources/*.bib /bib/
+
+
 # Install packages for building LaTeX documents
 # =============================================
 
@@ -109,35 +135,11 @@ RUN dnf install --nodocs -y \
 
 
 
-RUN mkdir -p /source \
-    && mkdir -p /bib \
-    && mkdir -p /usr/share/texlive/texmf-local/tex/latex/RBEassignment/fig \
-    && mkdir -p /usr/share/texlive/texmf-local/tex/latex/RBElecture/fig \
-    && mkdir -p /usr/local/share/LaTeX_templates/RBE550_lecture/fig/
-
-
-# Pull template files from intermediate container
-# ----------------------------------------------
-
-COPY --from=templates-getter /template/RBE550-assignment-template/template/RBEassignment.cls /usr/share/texlive/texmf-local/tex/latex/RBEassignment/
-COPY --from=templates-getter /template/RBE550-assignment-template/template/fig/*.png /usr/share/texlive/texmf-local/tex/latex/RBEassignment/fig/
-
-
-
-COPY --from=templates-getter /template/RBE550-lecture-template/fig/placeholder.pdf /usr/local/share/LaTeX_templates/RBE550_lecture/fig/
-COPY --from=templates-getter /template/RBE550-lecture-template/template/RBElecture.cls /usr/share/texlive/texmf-local/tex/latex/RBElecture/
-COPY --from=templates-getter /template/RBE550-lecture-template/template/fig/*.png /usr/share/texlive/texmf-local/tex/latex/RBElecture/fig/
-COPY --from=templates-getter /template/RBE550-lecture-template/scripts/encodeVideo.sh /usr/local/bin/
-
-COPY --from=templates-getter /template/RBE550resources/*.bib /bib/
-
-
 # Register the RBE classes with texlive
 RUN tlmgr conf texmf TEXMFHOME /usr/share/texlive/texmf-local \
     && mktexlsr /usr/share/texlive/texmf-local
 
 
-COPY scripts/build_course.sh /usr/local/bin/
 
 
 # configure entrypoint to kick off building everything
